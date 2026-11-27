@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google Tag Manager -->
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MZWQXCW8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
+<!-- End Google Tag Manager -->
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Kapok BioGlow Tycoon</title>
+<title>The Chickens of Doom...</title>
 <style>
 :root{--bg:#061b2d;--mint:#9dffe1;--text:#eaffff;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -13,6 +21,9 @@ h1{margin:0;color:var(--mint);font-size:clamp(25px,4vw,40px);text-shadow:0 0 18p
 .pill{background:#0b3048;border:1px solid #277f8c;border-radius:12px;padding:8px 12px;min-width:92px}.pill small{display:block;color:#a8d7dc}.pill b{font-size:18px;color:var(--mint)}
 .layout{max-width:1400px;margin:auto;padding:8px 14px 25px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:13px}
 .main{min-width:0}.gamebox{overflow:hidden;border:2px solid #4be5ce;border-radius:16px;background:#06334c;box-shadow:0 0 25px #00d6b533}
+.gamebox:fullscreen{display:flex;flex-direction:column;width:100vw;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;border:0;border-radius:0;overflow:auto}
+.gamebox:fullscreen #sea{flex:1 1 auto;min-height:0;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);object-fit:contain}
+.gamebox:fullscreen .toolbar{flex:0 0 auto;max-height:30vh;overflow:auto}
 canvas{width:100%;height:auto;display:block;background:#07516a}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:10px;background:#082b42;align-items:center}
 button{border:1px solid #3caa9e;border-radius:10px;background:#9affd9;color:#073544;font-weight:800;padding:10px 12px;cursor:pointer}
@@ -101,7 +112,7 @@ body:not(.touch-mode) #touch-help{display:none}
 </div>
 
 <header>
- <div><h1>⚓ KAPOK BIOGLOW TYCOON</h1><div class="sub">Hollow, waxy kapok fibers soak up oil and repel water. Build your fleet and restore the ocean!</div></div>
+ <div><h1>🐔 The Chickens of Doom...</h1><div class="sub">Hollow, waxy kapok fibers soak up oil and repel water. Build your fleet and restore the ocean!</div></div>
  <div class="topstats">
   <div class="pill"><small>COMPANY CASH</small><b id="cash">$250</b></div>
   <div class="pill"><small>OIL RECOVERED</small><b id="oil">0 L</b></div>
@@ -119,6 +130,7 @@ body:not(.touch-mode) #touch-help{display:none}
     <button id="extract">⚙️ Extract at dock [E]</button>
     <button id="refill" class="alt">📦 Refill pads</button>
     <button id="pause" class="alt">Ⅱ Pause</button>
+    <button id="fullbtn" class="alt" aria-pressed="false">⛶ Full screen</button>
     <button id="actbtn">🧭 Interact [F]</button>
     <button id="garbtn">🚤 Boathouse [G]</button>
     <button id="hutbtn">🛖 Upgrade hut [U]</button>
@@ -174,7 +186,7 @@ body:not(.touch-mode) #touch-help{display:none}
  </aside>
 </div>
 <div id="title"><div class="tbox">
- <h1>⚓ KAPOK BIOGLOW</h1><div class="sub">Powered by kapok: hollow, waxy fibers that soak up oil but repel water</div>
+ <h1>🐔 The Chickens of Doom...</h1><div class="sub">Powered by kapok: hollow, waxy fibers that soak up oil but repel water</div>
  <div id="load" style="margin-top:28px"><div class="bar"><span id="loadbar" style="width:0%"></span></div><p id="loadtxt" class="sub">Loading…</p></div>
  <div id="menu" style="display:none">
   <label for="uname">Captain name</label><input id="uname" maxlength="16" placeholder="Enter your name" autocomplete="off">
@@ -726,9 +738,22 @@ function draw(){
 }
 function loop(t){if(!last)last=t;let dt=t-last;last=t;update(dt);draw();requestAnimationFrame(loop)}
 function togglePause(){paused=!paused;$("pause").textContent=paused?"▶ Resume":"Ⅱ Pause";say(paused?"Game paused.":"Back to the ocean, captain!")}
+async function toggleFullscreen(){
+ const box=document.querySelector(".gamebox");
+ try{
+  if(document.fullscreenElement===box){await document.exitFullscreen();return}
+  if(!box.requestFullscreen){say("Fullscreen is not supported by this browser.");return}
+  await box.requestFullscreen();
+ }catch(e){say("Could not change fullscreen mode: "+String(e))}
+}
+document.addEventListener("fullscreenchange",()=>{
+ const active=document.fullscreenElement===document.querySelector(".gamebox");
+ $("fullbtn").textContent=active?"⛶ Exit full screen":"⛶ Full screen";
+ $("fullbtn").setAttribute("aria-pressed",String(active));
+});
 document.addEventListener("keydown",e=>{if(!started)return;if(hutOpen){if(e.key==="Escape"&&$("settings").style.display==="grid"){closeSettings();return}if($("tut").style.display==="grid")return;if(e.key==="Escape"||["u","g"].includes(e.key.toLowerCase())){closeHut();closeGarage()}return}if(e.key.toLowerCase()==="u"&&!e.repeat){openHut();return}if(e.key.toLowerCase()==="g"&&!e.repeat){openGarage();return}if(e.key.toLowerCase()==="f"&&!e.repeat){interact();return}let k=e.key.toLowerCase();keys[e.key]=true;keys[k]=true;if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault();if(e.code==="Space"&&!e.repeat)deploy();if(k==="e"&&!e.repeat)extract();if(k==="r"&&!e.repeat)rescue();if(k==="p"&&!e.repeat)togglePause();if((e.key==="Enter"||e.key==="Escape")&&!e.repeat){const lp=labPad();if(lp)soak(lp,1e9)}});
 document.addEventListener("keyup",e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});
-$("deploy").onclick=e=>{deploy();e.currentTarget.blur()};$("extract").onclick=e=>{extract();e.currentTarget.blur()};$("refill").onclick=e=>{refill();e.currentTarget.blur()};$("pause").onclick=e=>{togglePause();e.currentTarget.blur()};
+$("deploy").onclick=e=>{deploy();e.currentTarget.blur()};$("extract").onclick=e=>{extract();e.currentTarget.blur()};$("refill").onclick=e=>{refill();e.currentTarget.blur()};$("pause").onclick=e=>{togglePause();e.currentTarget.blur()};$("fullbtn").onclick=e=>{toggleFullscreen();e.currentTarget.blur()};
 $("modalButton").onclick=()=>{$("modal").style.display="none"};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let started=false,uname="Captain",saveClock=0,boardClock=1e9;
